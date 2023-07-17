@@ -36,7 +36,6 @@ class datatemplate_cache {
      */
     public function checkAndBuildCache($data, $sql, &$dtlist) {
         // We know that the datatemplate list has a datahelper.
-        /** @var $sqlite helper_plugin_sqlite */
         $sqlite = $dtlist->dthlp->_getDB();
 
         // Build minimalistic data array for checking the cache
@@ -53,7 +52,8 @@ class datatemplate_cache {
         $dtcc['filter'] = $data['filter'];
         $sqlcc = $dtlist->_buildSQL($dtcc);
         $res = $sqlite->query($sqlcc);
-        $pageids = $sqlite->res2arr($res, $assoc = false);
+        $pageids = $res->fetchAll(PDO::FETCH_NUM);
+        $res->closeCursor();
 
         // Ask dokuwiki for cache file name
         $cachefile = getCacheName($sql, '.datatemplate');
@@ -72,7 +72,8 @@ class datatemplate_cache {
         }
         if(!$cachedate || $latest > (int) $cachedate  || isset($_REQUEST['purge'])) {
             $res = $sqlite->query($sql);
-            $rows = $sqlite->res2arr($res, $assoc = false);
+            $rows = $res->fetchAll(PDO::FETCH_NUM);
+            $res->closeCursor();
             file_put_contents($cachefile, serialize($rows), LOCK_EX);
         } else {
             // We arrive here when the cache seems up-to-date. However,
